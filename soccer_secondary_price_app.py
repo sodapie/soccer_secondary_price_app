@@ -1,4 +1,3 @@
-
 # -*- coding: utf-8 -*-
 import pandas as pd
 import numpy as np
@@ -151,7 +150,7 @@ st.markdown("""
 チケジャムから以下の情報を取得します：
 
 - `data_get_dates`: 今日の日付
-- `data_get_dates`: 試合日
+- `event_dates`: 試合日
 - `events`: 試合概要
 - `details`: チケットに関する説明
 - `prices`: チケット価格
@@ -196,6 +195,10 @@ if all_selected:
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
+# セッションステートにデータを保持
+if 'scraped_data' not in st.session_state:
+    st.session_state.scraped_data = None
+
 if st.button('スクレイピング開始'):
     all_dfs = []
     with st.spinner('スクレイピング中'):
@@ -204,54 +207,62 @@ if st.button('スクレイピング開始'):
             df = scrape(team)  # 引数にteamを追加
             all_dfs.append(df)
         combined_df = pd.concat(all_dfs, ignore_index=True)
+        st.session_state.scraped_data = combined_df
         st.write('スクレイピング完了')
-        st.dataframe(combined_df)
-        csv = combined_df.to_csv(index=False)
-        st.download_button(
-            label='CSVとしてダウンロード',
-            data=csv,
-            file_name=f'{team}_{datetime.today().strftime("%Y%m%d")}.csv',
-            mime='text/csv'
+
+# データがセッションステートに保存されている場合は表示
+if st.session_state.scraped_data is not None:
+    combined_df = st.session_state.scraped_data
+    st.dataframe(combined_df)
+    csv = combined_df.to_csv(index=False)
+    st.download_button(
+        label='CSVとしてダウンロード',
+        data=csv,
+        file_name=f'{team}_{datetime.today().strftime("%Y%m%d")}.csv',
+        mime='text/csv'
+    )
+
+    # 箱ひげ図のプロット
+    plt.figure(figsize=(10, 6))
+    # イベント名の並び順を指定
+    sorted_events = combined_df['events'].unique()
+    sns.boxplot(data=combined_df, x='events', y='prices', order=sorted_events)
+    plt.title('イベントごとの価格 箱ひげ図')
+    plt.xticks(rotation=20, fontsize=6)
+    plt.savefig("boxplot.png")
+    st.pyplot(plt)
+
+    # グラフを保存するボタン
+    with open("boxplot.png", "rb") as file:
+        btn = st.download_button(
+            label="グラフを保存",
+            data=file,
+            file_name=f"{team}_{datetime.today().strftime('%Y%m%d')}_boxplot.png",
+            mime="image/png"
         )
 
-        # 箱ひげ図のプロット
-        plt.figure(figsize=(10, 6))
-        # イベント名の並び順を指定
-        sorted_events = combined_df['events'].unique()
-        sns.boxplot(data=combined_df, x='events', y='prices', order=sorted_events)
-        plt.title('イベントごとの価格 箱ひげ図')
-        plt.xticks(rotation=20, fontsize=6)
-        plt.savefig("boxplot.png")
-        st.pyplot(plt)
+    # 統計情報の計算
+    stats_df = combined_df.groupby('events')['prices'].describe().reset_index()
 
-        # グラフを保存するボタン
-        with open("boxplot.png", "rb") as file:
-            btn = st.download_button(
-                label="グラフを保存",
-                data=file,
-                file_name=f"{team}_{datetime.today().strftime('%Y%m%d')}_boxplot.png",
-                mime="image/png"
-            )
+    # 四分位範囲 (IQR) を計算
+    stats_df['IQR'] = stats_df['75%'] - stats_df['25%']
 
-        # 統計情報の計算
-        stats_df = combined_df.groupby('events')['prices'].describe().reset_index()
+    # 平均値を計算
+    stats_df['mean'] = combined_df.groupby('events')['prices'].mean().values
 
-        # 四分位範囲 (IQR) を計算
-        stats_df['IQR'] = stats_df['75%'] - stats_df['25%']
+    # イベント名の並び順を指定
+    stats_df = stats_df.set_index('events').loc[sorted_events].reset_index()
 
-        # 平均値を計算
-        stats_df['mean'] = combined_df.groupby('events')['prices'].mean().values
+    # 統計情報の表示
+    st.write("### 箱ひげ図の詳細情報")
+    st.dataframe(stats_df)
 
-        # イベント名の並び順を指定
-        stats_df = stats_df.set_index('events').loc[sorted_events].reset_index()
+    # 統計情報をCSVとしてダウンロードするボタン
+    csv_stats = stats_df.to_csv(index=False)
+    st.download_button(
+        label='統計情報をCSVとしてダウンロード',
+        data=csv_stats,
+        file_name=f'stats_{team}_{datetime.today().strftime("%Y%m%d")}.csv',
+        mime='text/csv'
+    )
 
-        # 統計情報の表示
-        st.write("### 箱ひげ図の詳細情報")
-        st.dataframe(stats_df)
-
-        # 統計情報をCSVとしてダウンロードするボタン
-        csv_stats = stats_df
-
-
-        # 統計情報をCSVとしてダウンロードするボタン
-        csv_stats = stats_df
