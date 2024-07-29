@@ -10,8 +10,6 @@ import japanize_matplotlib
 import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import time
-import aiohttp
-import asyncio
 import streamlit as st
 
 # 枚数を変換するコード
@@ -27,6 +25,7 @@ def scrape(team):
 
     # 空のデータを作成
     events = []
+    event_dates = []
     details = []
     prices = []
     amounts = []
@@ -61,6 +60,20 @@ def scrape(team):
                 events.append(event_text)
             else:
                 events.append(None)
+
+            # Event date
+            event_date = item.find('div', class_='venue')
+            if event_date:
+                event_date_text = event_date.get_text(strip=True)
+                date_match = re.search(r'\d{4}/\d{2}/\d{2}', event_date_text)
+                if date_match:
+                    date_str = date_match.group()
+                    formatted_date = datetime.strptime(date_str, '%Y/%m/%d').strftime('%Y%m%d')
+                    event_dates.append(formatted_date)
+                else:
+                    event_dates.append(None)
+            else:
+                event_dates.append(None)
 
             # Event detail
             detail = item.find('div', class_='eventlist__description')
@@ -112,7 +125,8 @@ def scrape(team):
 
     # 取得したデータを用いてデータフレームを作成
     df = pd.DataFrame({
-        'data_get_date': data_get_date,
+        'data_get_dates': data_get_date,
+        'event_dates': event_dates
         'events': events,
         'details': details,
         'prices': prices,
@@ -137,6 +151,7 @@ st.markdown("""
 チケジャムから以下の情報を取得します：
 
 - `data_get_dates`: 今日の日付
+- `data_get_dates`: 試合日
 - `events`: 試合概要
 - `details`: チケットに関する説明
 - `prices`: チケット価格
@@ -199,7 +214,6 @@ if st.button('スクレイピング開始'):
             mime='text/csv'
         )
 
-        
         # 箱ひげ図のプロット
         plt.figure(figsize=(10, 6))
         # イベント名の並び順を指定
@@ -234,6 +248,10 @@ if st.button('スクレイピング開始'):
         # 統計情報の表示
         st.write("### 箱ひげ図の詳細情報")
         st.dataframe(stats_df)
+
+        # 統計情報をCSVとしてダウンロードするボタン
+        csv_stats = stats_df
+
 
         # 統計情報をCSVとしてダウンロードするボタン
         csv_stats = stats_df
