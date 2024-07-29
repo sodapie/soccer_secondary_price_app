@@ -216,3 +216,17 @@ if st.button('スクレイピング開始'):
                 file_name="boxplot.png",
                 mime="image/png"
             )
+
+
+        # 統計情報の計算
+        stats_df = combined_df.groupby('events')['prices'].describe().reset_index()
+        
+        # 四分位範囲 (IQR) を計算
+        stats_df['IQR'] = stats_df['75%'] - stats_df['25%']
+        
+        # 平均値を計算
+        stats_df['mean'] = combined_df.groupby('events')['prices'].mean().values
+        
+        # 統計情報の表示
+        st.write("### 箱ひげ図の詳細情報")
+        st.dataframe(stats_df)
