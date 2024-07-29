@@ -198,6 +198,8 @@ st.markdown("<hr>", unsafe_allow_html=True)
 # セッションステートにデータを保持
 if 'scraped_data' not in st.session_state:
     st.session_state.scraped_data = None
+if 'team_name' not in st.session_state:
+    st.session_state.team_name = None
 
 if st.button('スクレイピング開始'):
     all_dfs = []
@@ -208,6 +210,7 @@ if st.button('スクレイピング開始'):
             all_dfs.append(df)
         combined_df = pd.concat(all_dfs, ignore_index=True)
         st.session_state.scraped_data = combined_df
+        st.session_state.team_name = selected_teams_display
         st.write('スクレイピング完了')
 
 # データがセッションステートに保存されている場合は表示
@@ -218,7 +221,7 @@ if st.session_state.scraped_data is not None:
     st.download_button(
         label='CSVとしてダウンロード',
         data=csv,
-        file_name=f'{team}_{datetime.today().strftime("%Y%m%d")}.csv',
+        file_name=f'soccer_secondary_prices_{datetime.today().strftime("%Y%m%d")}.csv',
         mime='text/csv'
     )
 
@@ -237,7 +240,7 @@ if st.session_state.scraped_data is not None:
         btn = st.download_button(
             label="グラフを保存",
             data=file,
-            file_name=f"{team}_{datetime.today().strftime('%Y%m%d')}_boxplot.png",
+            file_name=f"{'_'.join(st.session_state.team_name)}_{datetime.today().strftime('%Y%m%d')}_boxplot.png",
             mime="image/png"
         )
 
@@ -262,7 +265,6 @@ if st.session_state.scraped_data is not None:
     st.download_button(
         label='統計情報をCSVとしてダウンロード',
         data=csv_stats,
-        file_name=f'stats_{team}_{datetime.today().strftime("%Y%m%d")}.csv',
+        file_name=f'stats_{datetime.today().strftime("%Y%m%d")}.csv',
         mime='text/csv'
     )
-
