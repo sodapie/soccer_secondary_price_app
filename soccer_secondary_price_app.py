@@ -229,7 +229,7 @@ if st.button('スクレイピング開始'):
             btn = st.download_button(
                 label="グラフを保存",
                 data=file,
-                file_name="boxplot.png",
+                file_name=f"{team}_{datetime.today().strftime("%Y%m%d")}_boxplot.png",
                 mime="image/png"
             )
 
