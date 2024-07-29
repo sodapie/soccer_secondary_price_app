@@ -237,7 +237,7 @@ if st.session_state.scraped_data is not None:
         btn = st.download_button(
             label="グラフを保存",
             data=file,
-            file_name=f"{team}_{datetime.today().strftime('%Y%m%d')}_boxplot.png",
+            file_name=f"{datetime.today().strftime('%Y%m%d')}_boxplot.png",
             mime="image/png"
         )
 
