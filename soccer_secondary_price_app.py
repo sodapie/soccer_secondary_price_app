@@ -210,7 +210,7 @@ if st.button('スクレイピング開始'):
         st.download_button(
             label='CSVとしてダウンロード',
             data=csv,
-            file_name=f'soccer_secondary_prices_{datetime.today().strftime("%Y%m%d")}.csv',
+            file_name=f'{team}_{datetime.today().strftime("%Y%m%d")}.csv',
             mime='text/csv'
         )
 
