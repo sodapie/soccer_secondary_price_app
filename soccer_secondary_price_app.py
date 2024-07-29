@@ -203,4 +203,14 @@ if st.button('スクレイピング開始'):
         sns.boxplot(data=combined_df, x='events', y='prices')
         plt.title('イベントごとの価格 箱ひげ図')
         plt.xticks(rotation=20, fontsize=6)
+        plt.savefig("boxplot.png")
         st.pyplot(plt)
+        
+        # グラフを保存するボタン
+        with open("boxplot.png", "rb") as file:
+            btn = st.download_button(
+                label="グラフを保存",
+                data=file,
+                file_name="boxplot.png",
+                mime="image/png"
+            )
