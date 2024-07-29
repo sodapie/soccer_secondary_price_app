@@ -196,6 +196,11 @@ if st.button('スクレイピング開始'):
             file_name=f'soccer_secondary_prices_{datetime.today().strftime("%Y%m%d")}.csv',
             mime='text/csv'
         )
-        sns.boxplot(data=combined_df,x='events',y='prices')
+
+        
+        # 箱ひげ図のプロット
+        plt.figure(figsize=(10, 6))
+        sns.boxplot(data=combined_df, x='events', y='prices')
         plt.title('イベントごとの価格 箱ひげ図')
-        plt.xticks(rotation=20,fontsize=6)
+        plt.xticks(rotation=20, fontsize=6)
+        st.pyplot(plt)
