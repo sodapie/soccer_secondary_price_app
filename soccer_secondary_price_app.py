@@ -126,7 +126,7 @@ def scrape(team):
     # 取得したデータを用いてデータフレームを作成
     df = pd.DataFrame({
         'data_get_dates': data_get_date,
-        'event_dates': event_dates
+        'event_dates': event_dates,
         'events': events,
         'details': details,
         'prices': prices,
