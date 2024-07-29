@@ -202,12 +202,14 @@ if st.button('スクレイピング開始'):
         
         # 箱ひげ図のプロット
         plt.figure(figsize=(10, 6))
-        sns.boxplot(data=combined_df, x='events', y='prices')
+        # イベント名の並び順を指定
+        sorted_events = combined_df['events'].unique()
+        sns.boxplot(data=combined_df, x='events', y='prices', order=sorted_events)
         plt.title('イベントごとの価格 箱ひげ図')
         plt.xticks(rotation=20, fontsize=6)
         plt.savefig("boxplot.png")
         st.pyplot(plt)
-        
+
         # グラフを保存するボタン
         with open("boxplot.png", "rb") as file:
             btn = st.download_button(
@@ -217,16 +219,21 @@ if st.button('スクレイピング開始'):
                 mime="image/png"
             )
 
-
         # 統計情報の計算
         stats_df = combined_df.groupby('events')['prices'].describe().reset_index()
-        
+
         # 四分位範囲 (IQR) を計算
         stats_df['IQR'] = stats_df['75%'] - stats_df['25%']
-        
+
         # 平均値を計算
         stats_df['mean'] = combined_df.groupby('events')['prices'].mean().values
-        
+
+        # イベント名の並び順を指定
+        stats_df = stats_df.set_index('events').loc[sorted_events].reset_index()
+
         # 統計情報の表示
         st.write("### 箱ひげ図の詳細情報")
         st.dataframe(stats_df)
+
+        # 統計情報をCSVとしてダウンロードするボタン
+        csv_stats = stats_df
