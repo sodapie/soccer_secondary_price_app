@@ -179,6 +179,8 @@ all_selected = st.checkbox('全てのチームをスクレイピング')
 if all_selected:
     selected_teams_display = list(teams_display.keys())
 
+st.markdown("<hr>", unsafe_allow_html=True)
+
 if st.button('スクレイピング開始'):
     all_dfs = []
     with st.spinner('スクレイピング中'):
