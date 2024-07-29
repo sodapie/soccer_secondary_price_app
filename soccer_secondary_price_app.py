@@ -172,7 +172,7 @@ teams_display = {
     '横浜F・マリノス': 'f-marinos'
 }
 
-selected_teams_display = st.multiselect('チームを選択してください', teams_display.keys(), default=None)
+selected_teams_display = st.multiselect('チームを選択してください（五十音順）', teams_display.keys(), default=None)
 
 all_selected = st.checkbox('全てのチームをスクレイピング')
 
