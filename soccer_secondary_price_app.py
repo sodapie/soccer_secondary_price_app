@@ -10,6 +10,7 @@ import matplotlib.pyplot as plt
 from datetime import datetime, timedelta
 import time
 import streamlit as st
+import io
 
 # 枚数を変換するコード
 def extract_numbers(text):
