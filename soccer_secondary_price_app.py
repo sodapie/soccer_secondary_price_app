@@ -214,6 +214,7 @@ if st.button('スクレイピング開始'):
 if st.session_state.scraped_data is not None:
     combined_df = st.session_state.scraped_data
     st.dataframe(combined_df)
+
     csv = combined_df.to_csv(index=False)
     st.download_button(
         label='CSVとしてダウンロード',
@@ -222,46 +223,55 @@ if st.session_state.scraped_data is not None:
         mime='text/csv'
     )
 
-    # 箱ひげ図のプロット
-    plt.figure(figsize=(10, 6))
-    # イベント名の並び順を指定
-    sorted_events = combined_df['events'].unique()
-    sns.boxplot(data=combined_df, x='events', y='prices', order=sorted_events)
-    plt.title('イベントごとの価格 箱ひげ図')
-    plt.xticks(rotation=20, fontsize=6)
-    plt.savefig("boxplot.png")
-    st.pyplot(plt)
+    st.markdown("<hr>", unsafe_allow_html=True)
 
-    # グラフを保存するボタン
-    with open("boxplot.png", "rb") as file:
-        btn = st.download_button(
+    try:
+        # 箱ひげ図のプロット
+        plt.figure(figsize=(10, 6))
+        # イベント名の並び順を指定
+        sorted_events = combined_df['events'].unique()
+        sns.boxplot(data=combined_df, x='events', y='prices', order=sorted_events)
+        plt.title('イベントごとの価格 箱ひげ図')
+        plt.xticks(rotation=20, fontsize=6)
+        
+        fig1 = plt.gcf()  # 現在のFigureを取得
+        st.pyplot(fig1)
+        
+        # Figureをバッファに保存
+        buf1 = io.BytesIO()
+        fig1.savefig(buf1, format="png")
+        buf1.seek(0)
+        
+        st.download_button(
             label="グラフを保存",
-            data=file,
+            data=buf1,
             file_name=f"{datetime.today().strftime('%Y%m%d')}_boxplot.png",
             mime="image/png"
         )
+        buf1.close()
+    except KeyError:
+        st.error('該当するデータが見つかりませんでした')
 
-    # 統計情報の計算
-    stats_df = combined_df.groupby('events')['prices'].describe().reset_index()
-
-    # 四分位範囲 (IQR) を計算
-    stats_df['IQR'] = stats_df['75%'] - stats_df['25%']
-
-    # 平均値を計算
-    stats_df['mean'] = combined_df.groupby('events')['prices'].mean().values
-
-    # イベント名の並び順を指定
-    stats_df = stats_df.set_index('events').loc[sorted_events].reset_index()
-
-    # 統計情報の表示
-    st.write("### 箱ひげ図の詳細情報")
-    st.dataframe(stats_df)
-
-    # 統計情報をCSVとしてダウンロードするボタン
-    csv_stats = stats_df.to_csv(index=False)
-    st.download_button(
-        label='統計情報をCSVとしてダウンロード',
-        data=csv_stats,
-        file_name=f'stats_{datetime.today().strftime("%Y%m%d")}.csv',
-        mime='text/csv'
-    )
+    try:
+        # 統計情報の計算
+        stats_df = combined_df.groupby('events')['prices'].describe().reset_index()
+        # 四分位範囲 (IQR) を計算
+        stats_df['IQR'] = stats_df['75%'] - stats_df['25%']
+        # 平均値を計算
+        stats_df['mean'] = combined_df.groupby('events')['prices'].mean().values
+        # イベント名の並び順を指定
+        stats_df = stats_df.set_index('events').loc[sorted_events].reset_index()
+        # 統計情報の表示
+        st.write("### 箱ひげ図の詳細情報")
+        st.dataframe(stats_df)
+    
+        # 統計情報をCSVとしてダウンロードするボタン
+        csv_stats = stats_df.to_csv(index=False)
+        st.download_button(
+            label='統計情報をCSVとしてダウンロード',
+            data=csv_stats,
+            file_name=f'stats_{datetime.today().strftime("%Y%m%d")}.csv',
+            mime='text/csv'
+        )
+    except KeyError:
+        st.error('該当するデータが見つかりませんでした')
